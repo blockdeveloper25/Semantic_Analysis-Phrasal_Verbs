@@ -1,13 +1,8 @@
-import re
+# Simple example rule-based detector
 
-PHRASAL_VERBS = [
-    "come about", "turn after", "break back", "turn away"  # Add more as needed
-]
-
-def detect_phrasal_verbs(text):
+def detect_phrasal_verbs(text, phrasal_verbs_list):
     detected = []
-    for pv in PHRASAL_VERBS:
-        pattern = re.compile(rf"\b{pv}\b", re.IGNORECASE)
-        if pattern.search(text):
+    for pv in phrasal_verbs_list:
+        if pv in text:
             detected.append(pv)
     return detected

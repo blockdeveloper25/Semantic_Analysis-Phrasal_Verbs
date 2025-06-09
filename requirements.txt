@@ -6,3 +6,4 @@ pandas
 tqdm
 pyyaml
 ipykernel
+accelerate

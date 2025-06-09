@@ -1,2 +1,7 @@
 #!/bin/bash
-python main.py --config trainer/config.yaml
+
+echo "Starting training and evaluation pipeline..."
+
+python main.py
+
+echo "Pipeline finished."

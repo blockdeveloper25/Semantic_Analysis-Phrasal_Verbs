@@ -1,34 +1,45 @@
-import argparse
-import yaml
-from data.utils import load_and_process_data
-from trainer.train import PVDataset, train_model
-from trainer.evaluate import evaluate_model
-from models.bert_classifier import BERTClassifier
-from models.adapter_qlora import inject_qlora
+import torch
 from transformers import BertTokenizer
-from torch.utils.data import DataLoader
+from data.utils import load_and_process_data
+from models.bert_classifier import BERTClassifier
+from trainer.train import PhrasalVerbDataset, train_model
+from trainer.evaluate import evaluate_model
+import yaml
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--config", type=str, required=True)
-args = parser.parse_args()
+def main():
+    # Load config
+    with open('trainer/config.yaml') as f:
+        cfg = yaml.safe_load(f)
 
-with open(args.config) as f:
-    cfg = yaml.safe_load(f)
+    # Load and process dataset
+    train_df, val_df, test_df, label2id, id2label = load_and_process_data(cfg['dataset_path'], cfg['test_size'], cfg['val_size'])
 
-tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
-train_df, val_df, test_df, label2id, id2label = load_and_process_data(cfg['data_path'])
+    # Prepare tokenizer and datasets
+    tokenizer = BertTokenizer.from_pretrained("bert-base-uncased")
 
-train_dataset = PVDataset(train_df, tokenizer)
-val_dataset = PVDataset(val_df, tokenizer)
-test_dataset = PVDataset(test_df, tokenizer)
+    train_dataset = PhrasalVerbDataset(train_df, tokenizer, max_len=cfg['max_len'])
+    val_dataset = PhrasalVerbDataset(val_df, tokenizer, max_len=cfg['max_len'])
+    test_dataset = PhrasalVerbDataset(test_df, tokenizer, max_len=cfg['max_len'])
 
-train_loader = DataLoader(train_dataset, batch_size=2, shuffle=True)
-val_loader = DataLoader(val_dataset, batch_size=2)
-test_loader = DataLoader(test_dataset, batch_size=2)
+    train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=cfg['batch_size'], shuffle=True)
+    val_loader = torch.utils.data.DataLoader(val_dataset, batch_size=cfg['batch_size'])
+    test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=cfg['batch_size'])
 
-model = BERTClassifier(num_labels=len(label2id))
-model = inject_qlora(model)
+    # Initialize model
+    num_labels = len(label2id)
+    model = BERTClassifier(num_labels=num_labels)
 
-train_model(model, train_loader, val_loader, epochs=cfg['epochs'])
-acc, f1 = evaluate_model(model, test_loader)
-print(f"Test Accuracy: {acc}, F1 Score: {f1}")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # Train
+    train_model(model, train_loader, val_loader, epochs=cfg['epochs'], device=device)
+
+    # Evaluate
+    print("Validation Set:")
+    evaluate_model(model, val_loader, device)
+
+    print("Test Set:")
+    evaluate_model(model, test_loader, device)
+
+if __name__ == "__main__":
+    main()

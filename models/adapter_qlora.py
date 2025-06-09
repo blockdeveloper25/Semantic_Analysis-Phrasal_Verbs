@@ -1,12 +1,13 @@
+# Example placeholder; implement your QLoRA integration here
+
 from peft import get_peft_model, LoraConfig, TaskType
 
-def inject_qlora(model):
+def get_qlora_model(base_model, r=8, lora_alpha=16, lora_dropout=0.1):
     config = LoraConfig(
-        r=8,
-        lora_alpha=16,
-        target_modules=["classifier"],
-        lora_dropout=0.1,
-        bias="none",
-        task_type=TaskType.SEQ_CLS
+        task_type=TaskType.SEQ_CLS,
+        r=r,
+        lora_alpha=lora_alpha,
+        lora_dropout=lora_dropout,
     )
-    return get_peft_model(model, config)
+    model = get_peft_model(base_model, config)
+    return model
