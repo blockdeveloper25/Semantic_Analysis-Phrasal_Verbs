@@ -1,4 +1,5 @@
-from transformers import BertTokenizer, AdamW
+from transformers import BertTokenizer
+from torch.optim import AdamW  
 import torch
 from torch.utils.data import DataLoader, Dataset
 from tqdm import tqdm
