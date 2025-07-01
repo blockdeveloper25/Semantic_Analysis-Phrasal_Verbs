@@ -1,9 +1,0 @@
-torch
-transformers
-peft
-scikit-learn
-pandas
-tqdm
-pyyaml
-ipykernel
-accelerate
