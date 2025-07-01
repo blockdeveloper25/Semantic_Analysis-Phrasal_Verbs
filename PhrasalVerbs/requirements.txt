@@ -1,0 +1,16 @@
+ipykernel
+transformers
+torch
+pandas
+numpy
+scikit-learn
+nltk
+matplotlib
+seaborn
+datasets
+peft
+accelerate
+bitsandbytes
+sentence-transformers
+rouge
+rouge-score
